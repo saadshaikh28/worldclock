@@ -16,6 +16,12 @@
 <body>
     <div id="canvas-container"></div>
 
+    <div class="top-actions">
+        <button id="toggle-schedule-mode" class="btn-schedule">
+            <span class="icon">📅</span> Schedule Mode
+        </button>
+    </div>
+
     <main class="app-container">
         <header class="hero">
             <h1 class="glitter-text">GlobalSync</h1>
@@ -34,6 +40,25 @@
                 </div>
                 <button id="reset-time" class="btn-reset" style="display: none;">Reset to Real-time</button>
             </div>
+        </section>
+
+        <section id="schedule-controls" class="schedule-controls-bar" style="display: none;">
+            <div class="planning-info">
+                <span class="badge">Planning Mode</span>
+                <p>Set a range on your <strong>Primary</strong> clock to see corresponding hours elsewhere.</p>
+            </div>
+            <div class="range-inputs">
+                <div class="input-group">
+                    <label>Start</label>
+                    <input type="time" id="plan-start" value="09:00">
+                </div>
+                <div class="input-group arrow">→</div>
+                <div class="input-group">
+                    <label>End</label>
+                    <input type="time" id="plan-end" value="17:00">
+                </div>
+            </div>
+            <button id="exit-schedule" class="btn-exit">Exit Planning</button>
         </section>
 
         <section id="clocks-grid" class="clocks-grid">

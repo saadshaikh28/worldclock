@@ -33,6 +33,36 @@ body {
     pointer-events: none;
 }
 
+.top-actions {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 100;
+}
+
+.btn-schedule {
+    background: var(--card-bg);
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 0.8rem 1.5rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+}
+
+.btn-schedule:hover {
+    background: var(--accent-color);
+    color: black;
+    box-shadow: 0 0 30px var(--accent-glow);
+}
+
 .app-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -219,6 +249,129 @@ body {
     margin: 0 auto 1.5rem;
     position: relative;
     background: rgba(255, 255, 255, 0.03);
+}
+
+/* Schedule Mode Bar */
+.schedule-controls-bar {
+    background: linear-gradient(90deg, rgba(0, 212, 255, 0.1), rgba(0, 0, 0, 0.5));
+    border: 1px solid var(--accent-color);
+    border-radius: 20px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    animation: slideDown 0.5s ease-out;
+}
+
+.planning-info {
+    flex: 1;
+}
+
+.badge {
+    background: var(--accent-color);
+    color: black;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+.range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 0 2rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.input-group label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.input-group input {
+    background: #222;
+    border: 1px solid #444;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-family: inherit;
+}
+
+.arrow {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+    justify-content: center;
+}
+
+.btn-exit {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Clock Card Variations */
+.clock-card.primary {
+    border: 2px solid var(--accent-color);
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+}
+
+.primary-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: var(--accent-color);
+    color: black;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 800;
+}
+
+.range-display {
+    margin-top: 1rem;
+    background: rgba(0, 212, 255, 0.1);
+    padding: 0.5rem;
+    border-radius: 12px;
+    border: 1px dashed var(--accent-color);
+}
+
+.range-display .time-range {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.range-display .date-diff {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .clock-face::after {

@@ -8,6 +8,8 @@ let selectedCities = [
 
 let globalTimeOffset = 0; // Milliseconds
 let activeEditIndex = -1;
+let isScheduleMode = false;
+let primaryCityIndex = 0; // Default to first city
 
 // --- Three.js Setup ---
 let scene, camera, renderer, globe;
@@ -91,11 +93,13 @@ const editTimeInput = document.getElementById('edit-time-input');
 function renderClocks() {
     clocksGrid.innerHTML = '';
     selectedCities.forEach((city, index) => {
+        const isPrimary = isScheduleMode && index === primaryCityIndex;
         const card = document.createElement('div');
-        card.className = 'clock-card';
+        card.className = `clock-card ${isPrimary ? 'primary' : ''}`;
         card.innerHTML = `
+            ${isPrimary ? '<div class="primary-badge">Primary</div>' : ''}
             <button class="remove-city" onclick="removeCity(${index})">&times;</button>
-            <div class="clock-face" id="clock-${index}">
+            <div class="clock-face" id="clock-${index}" onclick="${isScheduleMode ? `setPrimary(${index})` : ''}">
                 <div class="hand hour-hand"></div>
                 <div class="hand minute-hand"></div>
                 <div class="hand second-hand"></div>
@@ -104,6 +108,10 @@ function renderClocks() {
                 <h2>${city.name}</h2>
                 <div class="timezone-label">${city.timezone}</div>
                 <div class="digital-time" onclick="openEditModal(${index})">--:--:--</div>
+                <div class="range-display" id="range-${index}" style="display: ${isScheduleMode ? 'block' : 'none'}">
+                    <div class="time-range">--:-- - --:--</div>
+                    <div class="date-diff">Same Day</div>
+                </div>
             </div>
         `;
         clocksGrid.appendChild(card);
@@ -111,6 +119,11 @@ function renderClocks() {
 }
 
 function updateClocks() {
+    if (isScheduleMode) {
+        updateScheduleDisplay();
+        return;
+    }
+
     const now = new Date(Date.now() + globalTimeOffset);
 
     selectedCities.forEach((city, index) => {
@@ -146,6 +159,65 @@ function updateClocks() {
         document.getElementById('sync-indicator').querySelector('.pulse').style.boxShadow = '0 0 10px #4caf50';
         document.getElementById('reset-time').style.display = 'none';
     }
+}
+
+function updateScheduleDisplay() {
+    const startTime = document.getElementById('plan-start').value;
+    const endTime = document.getElementById('plan-end').value;
+    const primaryCity = selectedCities[primaryCityIndex];
+
+    // Create a base date in primary timezone
+    const baseDateStr = new Date().toLocaleDateString('en-US', { timeZone: primaryCity.timezone });
+
+    selectedCities.forEach((city, index) => {
+        // Calculate start and end for each city corresponding to primary
+        const start = getOffsetTime(primaryCity.timezone, city.timezone, startTime);
+        const end = getOffsetTime(primaryCity.timezone, city.timezone, endTime);
+
+        // Update Hands (to start time)
+        const [h, m] = start.time.split(':').map(Number);
+        const clockEl = document.getElementById(`clock-${index}`);
+        if (clockEl) {
+            clockEl.querySelector('.second-hand').style.transform = `rotate(0deg)`;
+            clockEl.querySelector('.minute-hand').style.transform = `rotate(${(m / 60) * 360}deg)`;
+            clockEl.querySelector('.hour-hand').style.transform = `rotate(${((h % 12 + m / 60) / 12) * 360}deg)`;
+
+            const digitalEl = clockEl.parentElement.querySelector('.digital-time');
+            digitalEl.textContent = start.time + ":00";
+
+            const rangeEl = document.getElementById(`range-${index}`);
+            rangeEl.querySelector('.time-range').textContent = `${start.time} - ${end.time}`;
+            rangeEl.querySelector('.date-diff').textContent = start.dateDiff || "Same day";
+        }
+    });
+}
+
+function getOffsetTime(fromTZ, toTZ, timeStr) {
+    const [h, m] = timeStr.split(':');
+    const d = new Date();
+    // Create a date in the 'from' timezone
+    const fromDate = new Date(d.toLocaleString('en-US', { timeZone: fromTZ }));
+    fromDate.setHours(h, m, 0, 0);
+
+    // This is tricky in JS. A better way:
+    // 1. Get current time in both timezones to find the static difference
+    const now = new Date();
+    const fromNow = new Date(now.toLocaleString('en-US', { timeZone: fromTZ }));
+    const toNow = new Date(now.toLocaleString('en-US', { timeZone: toTZ }));
+    const diff = toNow.getTime() - fromNow.getTime();
+
+    const targetDate = new Date(fromDate.getTime() + diff);
+
+    const targetH = String(targetDate.getHours()).padStart(2, '0');
+    const targetM = String(targetDate.getMinutes()).padStart(2, '0');
+
+    // Date difference logic
+    let diffLabel = "Same day";
+    const dayDiff = targetDate.getDate() - fromDate.getDate();
+    if (dayDiff > 0) diffLabel = `+${dayDiff} day${dayDiff > 1 ? 's' : ''}`;
+    if (dayDiff < 0) diffLabel = `${dayDiff} day${dayDiff < -1 ? 's' : ''}`;
+
+    return { time: `${targetH}:${targetM}`, dateDiff: diffLabel };
 }
 
 function removeCity(index) {
@@ -248,6 +320,32 @@ document.getElementById('apply-edit').addEventListener('click', () => {
 document.getElementById('reset-time').addEventListener('click', () => {
     globalTimeOffset = 0;
 });
+
+// --- Schedule Mode Actions ---
+
+function setPrimary(index) {
+    primaryCityIndex = index;
+    renderClocks();
+    updateScheduleDisplay();
+}
+
+document.getElementById('toggle-schedule-mode').addEventListener('click', () => {
+    isScheduleMode = true;
+    document.getElementById('schedule-controls').style.display = 'flex';
+    document.getElementById('toggle-schedule-mode').style.display = 'none';
+    renderClocks();
+    updateScheduleDisplay();
+});
+
+document.getElementById('exit-schedule').addEventListener('click', () => {
+    isScheduleMode = false;
+    document.getElementById('schedule-controls').style.display = 'none';
+    document.getElementById('toggle-schedule-mode').style.display = 'flex';
+    renderClocks();
+});
+
+document.getElementById('plan-start').addEventListener('input', updateScheduleDisplay);
+document.getElementById('plan-end').addEventListener('input', updateScheduleDisplay);
 
 // Initialize
 initThreeJS();
