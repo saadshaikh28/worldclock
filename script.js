@@ -96,6 +96,8 @@ function renderClocks() {
         const isPrimary = isScheduleMode && index === primaryCityIndex;
         const card = document.createElement('div');
         card.className = `clock-card ${isPrimary ? 'primary' : ''}`;
+        card.draggable = true;
+        card.dataset.index = index;
         card.innerHTML = `
             ${isPrimary ? '<div class="primary-badge">Primary</div>' : ''}
             <button class="remove-city" onclick="removeCity(${index})">&times;</button>
@@ -114,8 +116,44 @@ function renderClocks() {
                 </div>
             </div>
         `;
+
+        // Drag Events
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('drop', handleDrop);
+        card.addEventListener('dragend', handleDragEnd);
+
         clocksGrid.appendChild(card);
     });
+}
+
+let draggedIndex = null;
+
+function handleDragStart(e) {
+    draggedIndex = parseInt(this.dataset.index);
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const targetIndex = parseInt(this.dataset.index);
+    if (draggedIndex !== null && draggedIndex !== targetIndex) {
+        // Reorder array
+        const itemMove = selectedCities.splice(draggedIndex, 1)[0];
+        selectedCities.splice(targetIndex, 0, itemMove);
+        renderClocks();
+    }
+}
+
+function handleDragEnd() {
+    this.classList.remove('dragging');
+    draggedIndex = null;
 }
 
 function updateClocks() {
@@ -227,22 +265,87 @@ function removeCity(index) {
 
 // --- Search Implementation ---
 const commonCities = [
-    { name: 'London', timezone: 'Europe/London' },
+    // Americas
     { name: 'New York', timezone: 'America/New_York' },
-    { name: 'Tokyo', timezone: 'Asia/Tokyo' },
-    { name: 'Dubai', timezone: 'Asia/Dubai' },
-    { name: 'Singapore', timezone: 'Asia/Singapore' },
+    { name: 'Los Angeles', timezone: 'America/Los_Angeles' },
+    { name: 'Chicago', timezone: 'America/Chicago' },
     { name: 'San Francisco', timezone: 'America/Los_Angeles' },
+    { name: 'Toronto', timezone: 'America/Toronto' },
+    { name: 'Vancouver', timezone: 'America/Vancouver' },
+    { name: 'Mexico City', timezone: 'America/Mexico_City' },
+    { name: 'Sao Paulo', timezone: 'America/Sao_Paulo' },
+    { name: 'Buenos Aires', timezone: 'America/Argentina/Buenos_Aires' },
+    { name: 'Santiago', timezone: 'America/Santiago' },
+    { name: 'Bogota', timezone: 'America/Bogota' },
+    { name: 'Lima', timezone: 'America/Lima' },
+    { name: 'Miami', timezone: 'America/New_York' },
+    { name: 'Seattle', timezone: 'America/Los_Angeles' },
+    { name: 'Denver', timezone: 'America/Denver' },
+    { name: 'Boston', timezone: 'America/New_York' },
+    { name: 'Houston', timezone: 'America/Chicago' },
+    { name: 'Phoenix', timezone: 'America/Phoenix' },
+
+    // Europe
+    { name: 'London', timezone: 'Europe/London' },
     { name: 'Paris', timezone: 'Europe/Paris' },
     { name: 'Berlin', timezone: 'Europe/Berlin' },
-    { name: 'Sydney', timezone: 'Australia/Sydney' },
-    { name: 'Mumbai', timezone: 'Asia/Kolkata' },
-    { name: 'Hong Kong', timezone: 'Asia/Hong_Kong' },
-    { name: 'Chicago', timezone: 'America/Chicago' },
-    { name: 'Toronto', timezone: 'America/Toronto' },
-    { name: 'Sao Paulo', timezone: 'America/Sao_Paulo' },
+    { name: 'Zurich', timezone: 'Europe/Zurich' },
+    { name: 'Madrid', timezone: 'Europe/Madrid' },
+    { name: 'Rome', timezone: 'Europe/Rome' },
+    { name: 'Amsterdam', timezone: 'Europe/Amsterdam' },
+    { name: 'Vienna', timezone: 'Europe/Vienna' },
+    { name: 'Stockholm', timezone: 'Europe/Stockholm' },
+    { name: 'Oslo', timezone: 'Europe/Oslo' },
+    { name: 'Copenhagen', timezone: 'Europe/Copenhagen' },
+    { name: 'Brussels', timezone: 'Europe/Brussels' },
+    { name: 'Dublin', timezone: 'Europe/Dublin' },
+    { name: 'Lisbon', timezone: 'Europe/Lisbon' },
+    { name: 'Helsinki', timezone: 'Europe/Helsinki' },
+    { name: 'Athens', timezone: 'Europe/Athens' },
+    { name: 'Istanbul', timezone: 'Europe/Istanbul' },
+    { name: 'Moscow', timezone: 'Europe/Moscow' },
+    { name: 'Warsaw', timezone: 'Europe/Warsaw' },
+    { name: 'Prague', timezone: 'Europe/Prague' },
+
+    // Middle East & Africa
+    { name: 'Dubai', timezone: 'Asia/Dubai' },
+    { name: 'Riyadh', timezone: 'Asia/Riyadh' },
+    { name: 'Doha', timezone: 'Asia/Qatar' },
+    { name: 'Abu Dhabi', timezone: 'Asia/Dubai' },
+    { name: 'Tel Aviv', timezone: 'Asia/Jerusalem' },
     { name: 'Johannesburg', timezone: 'Africa/Johannesburg' },
-    { name: 'Zurich', timezone: 'Europe/Zurich' }
+    { name: 'Cairo', timezone: 'Africa/Cairo' },
+    { name: 'Nairobi', timezone: 'Africa/Nairobi' },
+    { name: 'Lagos', timezone: 'Africa/Lagos' },
+    { name: 'Casablanca', timezone: 'Africa/Casablanca' },
+    { name: 'Cape Town', timezone: 'Africa/Johannesburg' },
+
+    // Asia
+    { name: 'Singapore', timezone: 'Asia/Singapore' },
+    { name: 'Tokyo', timezone: 'Asia/Tokyo' },
+    { name: 'Hong Kong', timezone: 'Asia/Hong_Kong' },
+    { name: 'Mumbai', timezone: 'Asia/Kolkata' },
+    { name: 'Delhi', timezone: 'Asia/Kolkata' },
+    { name: 'Seoul', timezone: 'Asia/Seoul' },
+    { name: 'Beijing', timezone: 'Asia/Shanghai' },
+    { name: 'Shanghai', timezone: 'Asia/Shanghai' },
+    { name: 'Bangkok', timezone: 'Asia/Bangkok' },
+    { name: 'Jakarta', timezone: 'Asia/Jakarta' },
+    { name: 'Manila', timezone: 'Asia/Manila' },
+    { name: 'Taipei', timezone: 'Asia/Taipei' },
+    { name: 'Ho Chi Minh City', timezone: 'Asia/Ho_Chi_Minh' },
+    { name: 'Kuala Lumpur', timezone: 'Asia/Kuala_Lumpur' },
+    { name: 'Karachi', timezone: 'Asia/Karachi' },
+    { name: 'Dhaka', timezone: 'Asia/Dhaka' },
+
+    // Oceania
+    { name: 'Sydney', timezone: 'Australia/Sydney' },
+    { name: 'Melbourne', timezone: 'Australia/Melbourne' },
+    { name: 'Perth', timezone: 'Australia/Perth' },
+    { name: 'Brisbane', timezone: 'Australia/Brisbane' },
+    { name: 'Auckland', timezone: 'Pacific/Auckland' },
+    { name: 'Wellington', timezone: 'Pacific/Auckland' },
+    { name: 'Fiji', timezone: 'Pacific/Fiji' }
 ];
 
 searchInput.addEventListener('input', (e) => {
