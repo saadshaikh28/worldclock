@@ -93,6 +93,9 @@ function renderClocks() {
     selectedCities.forEach((city, index) => {
         const card = document.createElement('div');
         card.className = 'clock-card';
+        card.draggable = true;
+        card.dataset.index = index;
+
         card.innerHTML = `
             <button class="remove-city" onclick="removeCity(${index})">&times;</button>
             <div class="clock-face" id="clock-${index}">
@@ -106,8 +109,44 @@ function renderClocks() {
                 <div class="digital-time" onclick="openEditModal(${index})">--:--:--</div>
             </div>
         `;
+
+        // Drag Events
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('drop', handleDrop);
+        card.addEventListener('dragend', handleDragEnd);
+
         clocksGrid.appendChild(card);
     });
+}
+
+let draggedIndex = null;
+
+function handleDragStart(e) {
+    draggedIndex = parseInt(this.dataset.index);
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const targetIndex = parseInt(this.dataset.index);
+    if (draggedIndex !== null && draggedIndex !== targetIndex) {
+        // Reorder array
+        const itemMove = selectedCities.splice(draggedIndex, 1)[0];
+        selectedCities.splice(targetIndex, 0, itemMove);
+        renderClocks();
+    }
+}
+
+function handleDragEnd() {
+    this.classList.remove('dragging');
+    draggedIndex = null;
 }
 
 function updateClocks() {
