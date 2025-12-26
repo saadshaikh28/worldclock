@@ -450,8 +450,34 @@ document.getElementById('exit-schedule').addEventListener('click', () => {
 document.getElementById('plan-start').addEventListener('input', updateScheduleDisplay);
 document.getElementById('plan-end').addEventListener('input', updateScheduleDisplay);
 
+async function detectLocation() {
+    try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+
+        if (data.city && data.timezone) {
+            const userCity = { name: `Current: ${data.city}`, timezone: data.timezone };
+
+            // Remove if already exists with same name to avoid duplicates
+            selectedCities = selectedCities.filter(c => c.timezone !== data.timezone);
+
+            // Add to the beginning
+            selectedCities.unshift(userCity);
+
+            // Set as primary
+            primaryCityIndex = 0;
+
+            renderClocks();
+            updateClocks();
+        }
+    } catch (error) {
+        console.error("Location detection failed:", error);
+    }
+}
+
 // Initialize
 initThreeJS();
+detectLocation();
 renderClocks();
 setInterval(updateClocks, 1000);
 updateClocks();
