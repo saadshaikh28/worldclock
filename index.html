@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalSync | Premium World Clock</title>
+    <meta name="description"
+        content="A premium world clock for global entrepreneurs. Track time across the globe with interactive 3D Earth and elegant analog clocks.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="canvas-container"></div>
+
+    <main class="app-container">
+        <header class="hero">
+            <h1 class="glitter-text">GlobalSync</h1>
+            <p class="subtitle">Seamless time coordination for the global elite.</p>
+        </header>
+
+        <section class="controls">
+            <div class="search-wrapper">
+                <input type="text" id="city-search" placeholder="Add a city..." autocomplete="off">
+                <div id="search-results" class="search-results"></div>
+            </div>
+            <div class="sync-wrapper">
+                <div class="sync-indicator" id="sync-indicator">
+                    <span>Real-time Sync</span>
+                    <div class="pulse"></div>
+                </div>
+                <button id="reset-time" class="btn-reset" style="display: none;">Reset to Real-time</button>
+            </div>
+        </section>
+
+        <section id="clocks-grid" class="clocks-grid">
+            <!-- Clocks will be injected here -->
+        </section>
+    </main>
+
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div id="time-edit-modal" class="modal">
+        <h3>Adjust Reference Time</h3>
+        <p>Changing this will shift all other clocks proportionally.</p>
+        <div class="modal-body">
+            <input type="time" id="edit-time-input">
+            <div class="modal-actions">
+                <button id="cancel-edit" class="btn-secondary">Cancel</button>
+                <button id="apply-edit" class="btn-primary">Apply Sync</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
