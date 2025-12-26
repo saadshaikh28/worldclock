@@ -96,7 +96,7 @@ function renderClocks() {
         const isPrimary = isScheduleMode && index === primaryCityIndex;
         const card = document.createElement('div');
         card.className = `clock-card ${isPrimary ? 'primary' : ''}`;
-        card.draggable = true;
+        card.draggable = !isScheduleMode;
         card.dataset.index = index;
         card.innerHTML = `
             ${isPrimary ? '<div class="primary-badge">Primary</div>' : ''}
@@ -111,7 +111,7 @@ function renderClocks() {
             <div class="city-info">
                 <h2>${city.name}</h2>
                 <div class="timezone-label">${city.timezone}</div>
-                <div class="digital-time" onclick="openEditModal(${index})">--:--:--</div>
+                <div class="digital-time" onclick="${!isScheduleMode ? `openEditModal(${index})` : ''}">--:--:--</div>
                 <div class="range-display" id="range-${index}" style="display: ${isScheduleMode ? 'block' : 'none'}">
                     <div class="time-range">--:-- - --:--</div>
                     <div class="date-diff">Same Day</div>
@@ -119,11 +119,13 @@ function renderClocks() {
             </div>
         `;
 
-        // Drag Events
-        card.addEventListener('dragstart', handleDragStart);
-        card.addEventListener('dragover', handleDragOver);
-        card.addEventListener('drop', handleDrop);
-        card.addEventListener('dragend', handleDragEnd);
+        // Drag Events (Only in normal mode)
+        if (!isScheduleMode) {
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('drop', handleDrop);
+            card.addEventListener('dragend', handleDragEnd);
+        }
 
         clocksGrid.appendChild(card);
     });
@@ -492,8 +494,15 @@ function handleHandMove(e) {
     // We'll treat the drag as a minute hand adjustment for precision, or hour if they are closer to it.
     // For simplicity and better UX, we'll map the full 360 to 12 hours.
     const totalMinutes = (degrees / 360) * (12 * 60);
-    const h = Math.floor(totalMinutes);
-    const m = Math.floor((totalMinutes % 1) * 60);
+    let h = Math.floor(totalMinutes);
+    let m = Math.floor((totalMinutes % 1) * 60);
+
+    // Snap minutes to nearest 5 for better planning precision
+    m = Math.round(m / 5) * 5;
+    if (m === 60) {
+        m = 0;
+        h = (h + 1) % 24;
+    }
 
     const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     document.getElementById('plan-start').value = timeStr;

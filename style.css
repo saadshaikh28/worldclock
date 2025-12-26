@@ -337,12 +337,20 @@ body {
 }
 
 .input-group input {
-    background: #222;
-    border: 1px solid #444;
+    background: #111;
+    border: 1px solid var(--accent-color);
     color: white;
-    padding: 0.5rem;
-    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
     font-family: inherit;
+    font-size: 1.1rem;
+    transition: 0.3s;
+    outline: none;
+}
+
+.input-group input:focus {
+    box-shadow: 0 0 15px var(--accent-glow);
+    background: #222;
 }
 
 .arrow {
@@ -364,7 +372,22 @@ body {
 /* Clock Card Variations */
 .clock-card.primary {
     border: 2px solid var(--accent-color);
-    box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+    animation: primaryPulse 3s infinite;
+}
+
+@keyframes primaryPulse {
+    0% {
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+    }
+
+    100% {
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+    }
 }
 
 .primary-badge {
@@ -377,6 +400,7 @@ body {
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
     font-weight: 800;
+    box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .range-display {
