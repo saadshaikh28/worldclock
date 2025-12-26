@@ -101,9 +101,11 @@ function renderClocks() {
         card.innerHTML = `
             ${isPrimary ? '<div class="primary-badge">Primary</div>' : ''}
             <button class="remove-city" onclick="removeCity(${index})">&times;</button>
-            <div class="clock-face" id="clock-${index}" onclick="${isScheduleMode ? `setPrimary(${index})` : ''}">
-                <div class="hand hour-hand"></div>
-                <div class="hand minute-hand"></div>
+            <div class="clock-face" id="clock-${index}" 
+                 onclick="${(isScheduleMode && index !== primaryCityIndex) ? `setPrimary(${index})` : ''}"
+                 onmousedown="${isPrimary ? `startHandDrag(event, ${index})` : ''}">
+                <div class="hand hour-hand ${isPrimary ? 'interactive' : ''}"></div>
+                <div class="hand minute-hand ${isPrimary ? 'interactive' : ''}"></div>
                 <div class="hand second-hand"></div>
             </div>
             <div class="city-info">
@@ -183,6 +185,10 @@ function updateClocks() {
 
             const digitalEl = clockEl.parentElement.querySelector('.digital-time');
             digitalEl.textContent = timeInZone.toLocaleTimeString('en-GB', { hour12: false });
+
+            // Day/Night visualization
+            clockEl.classList.remove('day', 'night');
+            clockEl.classList.add(hours >= 6 && hours < 18 ? 'day' : 'night');
         }
     });
 
@@ -222,6 +228,10 @@ function updateScheduleDisplay() {
 
             const digitalEl = clockEl.parentElement.querySelector('.digital-time');
             digitalEl.textContent = start.time + ":00";
+
+            // Day/Night visualization in planning mode
+            clockEl.classList.remove('day', 'night');
+            clockEl.classList.add(h >= 6 && h < 18 ? 'day' : 'night');
 
             const rangeEl = document.getElementById(`range-${index}`);
             rangeEl.querySelector('.time-range').textContent = `${start.time} - ${end.time}`;
@@ -434,6 +444,7 @@ function setPrimary(index) {
 
 document.getElementById('toggle-schedule-mode').addEventListener('click', () => {
     isScheduleMode = true;
+    document.body.classList.add('planning-mode');
     document.getElementById('schedule-controls').style.display = 'flex';
     document.getElementById('toggle-schedule-mode').style.display = 'none';
     renderClocks();
@@ -442,10 +453,52 @@ document.getElementById('toggle-schedule-mode').addEventListener('click', () => 
 
 document.getElementById('exit-schedule').addEventListener('click', () => {
     isScheduleMode = false;
+    document.body.classList.remove('planning-mode');
     document.getElementById('schedule-controls').style.display = 'none';
     document.getElementById('toggle-schedule-mode').style.display = 'flex';
     renderClocks();
 });
+
+// --- Hand Dragging Logic ---
+let isDraggingHand = false;
+
+function startHandDrag(e, index) {
+    if (!isScheduleMode) return;
+    isDraggingHand = true;
+    window.addEventListener('mousemove', handleHandMove);
+    window.addEventListener('mouseup', stopHandDrag);
+}
+
+function stopHandDrag() {
+    isDraggingHand = false;
+    window.removeEventListener('mousemove', handleHandMove);
+    window.removeEventListener('mouseup', stopHandDrag);
+}
+
+function handleHandMove(e) {
+    if (!isDraggingHand) return;
+
+    const primaryClock = document.getElementById(`clock-${primaryCityIndex}`);
+    const rect = primaryClock.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Calculate angle from center
+    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) + Math.PI / 2;
+    let degrees = angle * (180 / Math.PI);
+    if (degrees < 0) degrees += 360;
+
+    // Convert degrees to time (for the primary clock)
+    // We'll treat the drag as a minute hand adjustment for precision, or hour if they are closer to it.
+    // For simplicity and better UX, we'll map the full 360 to 12 hours.
+    const totalMinutes = (degrees / 360) * (12 * 60);
+    const h = Math.floor(totalMinutes);
+    const m = Math.floor((totalMinutes % 1) * 60);
+
+    const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    document.getElementById('plan-start').value = timeStr;
+    updateScheduleDisplay();
+}
 
 document.getElementById('plan-start').addEventListener('input', updateScheduleDisplay);
 document.getElementById('plan-end').addEventListener('input', updateScheduleDisplay);

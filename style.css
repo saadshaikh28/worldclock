@@ -259,7 +259,32 @@ body {
     border-radius: 50%;
     margin: 0 auto 1.5rem;
     position: relative;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     background: rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+}
+
+/* Day/Night Styles */
+.clock-face.day {
+    background: radial-gradient(circle, rgba(255, 220, 100, 0.2) 0%, rgba(20, 20, 20, 0.1) 70%);
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+.clock-face.night {
+    background: radial-gradient(circle, rgba(100, 150, 255, 0.1) 0%, rgba(5, 5, 5, 0.5) 70%);
+    border-color: #4a90e2;
+    box-shadow: 0 0 15px rgba(74, 144, 226, 0.1);
+}
+
+.clock-face::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    background-image: radial-gradient(circle at center, transparent 69%, var(--text-primary) 70%, transparent 71%);
+    background-size: 20px 20px;
+    pointer-events: none;
 }
 
 /* Schedule Mode Bar */
@@ -404,7 +429,22 @@ body {
     left: 50%;
     transform-origin: bottom;
     border-radius: 10px;
-    transition: transform 0.5s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+    transition: transform 0.1s linear;
+    /* Faster transition for dragging */
+}
+
+.hand.interactive {
+    cursor: pointer;
+}
+
+.hand.interactive:hover {
+    filter: brightness(1.5);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* Hide seconds in planning mode */
+body.planning-mode .second-hand {
+    display: none;
 }
 
 .hour-hand {
