@@ -466,6 +466,12 @@ body {
     box-shadow: 0 0 10px var(--accent-glow);
 }
 
+.hand.selected {
+    filter: brightness(2);
+    box-shadow: 0 0 15px #00ffff, 0 0 30px rgba(0, 255, 255, 0.4);
+    z-index: 15;
+}
+
 /* Hide seconds in planning mode */
 body.planning-mode .second-hand {
     display: none;

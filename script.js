@@ -10,6 +10,7 @@ let globalTimeOffset = 0; // Milliseconds
 let activeEditIndex = -1;
 let isScheduleMode = false;
 let primaryCityIndex = 0; // Default to first city
+let selectedHand = null; // 'hour' or 'minute'
 
 // --- Three.js Setup ---
 let scene, camera, renderer, globe;
@@ -102,10 +103,11 @@ function renderClocks() {
             ${isPrimary ? '<div class="primary-badge">Primary</div>' : ''}
             <button class="remove-city" onclick="removeCity(${index})">&times;</button>
             <div class="clock-face" id="clock-${index}" 
-                 onclick="${(isScheduleMode && index !== primaryCityIndex) ? `setPrimary(${index})` : ''}"
-                 onmousedown="${isPrimary ? `startHandDrag(event, ${index})` : ''}">
-                <div class="hand hour-hand ${isPrimary ? 'interactive' : ''}"></div>
-                <div class="hand minute-hand ${isPrimary ? 'interactive' : ''}"></div>
+                 onclick="handleClockFaceInteraction(${index}, event)">
+                <div class="hand hour-hand ${isPrimary ? 'interactive' : ''} ${isPrimary && selectedHand === 'hour' ? 'selected' : ''}" 
+                     onclick="${isPrimary ? "toggleHandSelection('hour', event)" : ''}"></div>
+                <div class="hand minute-hand ${isPrimary ? 'interactive' : ''} ${isPrimary && selectedHand === 'minute' ? 'selected' : ''}" 
+                     onclick="${isPrimary ? "toggleHandSelection('minute', event)" : ''}"></div>
                 <div class="hand second-hand"></div>
             </div>
             <div class="city-info">
@@ -461,53 +463,63 @@ document.getElementById('exit-schedule').addEventListener('click', () => {
     renderClocks();
 });
 
-// --- Hand Dragging Logic ---
-let isDraggingHand = false;
+// --- Planning Mode Interaction (Selection & Click-to-Move) ---
 
-function startHandDrag(e, index) {
+function toggleHandSelection(hand, e) {
     if (!isScheduleMode) return;
-    isDraggingHand = true;
-    window.addEventListener('mousemove', handleHandMove);
-    window.addEventListener('mouseup', stopHandDrag);
+    e.stopPropagation(); // Prevent clock face click
+
+    // Toggle if same hand clicked, else set new
+    selectedHand = (selectedHand === hand) ? null : hand;
+    renderClocks();
 }
 
-function stopHandDrag() {
-    isDraggingHand = false;
-    window.removeEventListener('mousemove', handleHandMove);
-    window.removeEventListener('mouseup', stopHandDrag);
-}
+function handleClockFaceInteraction(index, e) {
+    if (!isScheduleMode) return;
 
-function handleHandMove(e) {
-    if (!isDraggingHand) return;
+    // Shift primary clock logic
+    if (index !== primaryCityIndex) {
+        setPrimary(index);
+        return;
+    }
 
-    const primaryClock = document.getElementById(`clock-${primaryCityIndex}`);
-    const rect = primaryClock.getBoundingClientRect();
+    // Move selected hand to click position
+    if (!selectedHand) return;
+
+    const clockEl = document.getElementById(`clock-${index}`);
+    const rect = clockEl.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    // Calculate angle from center
     const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) + Math.PI / 2;
     let degrees = angle * (180 / Math.PI);
     if (degrees < 0) degrees += 360;
 
-    // Convert degrees to time (for the primary clock)
-    // We'll treat the drag as a minute hand adjustment for precision, or hour if they are closer to it.
-    // For simplicity and better UX, we'll map the full 360 to 12 hours.
-    const totalMinutes = (degrees / 360) * (12 * 60);
-    let h = Math.floor(totalMinutes);
-    let m = Math.floor((totalMinutes % 1) * 60);
+    const currentVal = document.getElementById('plan-start').value;
+    let [h, m] = currentVal.split(':').map(Number);
 
-    // Snap minutes to nearest 5 for better planning precision
-    m = Math.round(m / 5) * 5;
-    if (m === 60) {
-        m = 0;
-        h = (h + 1) % 24;
+    if (selectedHand === 'hour') {
+        // Map 360 degrees to 12 hours
+        let newH = Math.round((degrees / 360) * 12) % 12;
+        // Preserve AM/PM
+        if (h >= 12) h = newH + 12;
+        else h = newH;
+    } else if (selectedHand === 'minute') {
+        // Map 360 degrees to 60 minutes
+        m = Math.round((degrees / 360) * 60) % 60;
+        // Snap to nearest 5 for better UX if preferred, or leave raw for precision. 
+        // User liked snapping before, let's keep it consistent.
+        m = Math.round(m / 5) * 5;
+        if (m === 60) m = 0;
     }
 
-    const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    document.getElementById('plan-start').value = timeStr;
+    document.getElementById('plan-start').value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    selectedHand = null; // Clear selection after move
+    renderClocks();
     updateScheduleDisplay();
 }
+
+// Removing obsolete hand dragging logic
 
 document.getElementById('plan-start').addEventListener('input', updateScheduleDisplay);
 document.getElementById('plan-end').addEventListener('input', updateScheduleDisplay);
