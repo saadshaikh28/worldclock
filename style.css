@@ -262,6 +262,8 @@ body {
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     background: rgba(255, 255, 255, 0.03);
     overflow: hidden;
+    /* Center the clock face but allow absolute children like the slider container */
+    display: inline-block;
 }
 
 /* Day/Night Styles */
@@ -401,6 +403,46 @@ body {
     border-radius: 4px;
     font-weight: 800;
     box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.vertical-slider-container {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.vertical-time-slider {
+    -webkit-appearance: slider-vertical;
+    appearance: slider-vertical;
+    width: 8px;
+    height: 180px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    outline: none;
+    cursor: pointer;
+}
+
+.vertical-time-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.slider-label {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
 }
 
 .range-display {

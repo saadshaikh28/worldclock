@@ -93,6 +93,10 @@ const editTimeInput = document.getElementById('edit-time-input');
 
 function renderClocks() {
     clocksGrid.innerHTML = '';
+    const currentPlanStart = document.getElementById('plan-start') ? document.getElementById('plan-start').value : "09:00";
+    const [psH, psM] = currentPlanStart.split(':').map(Number);
+    const initialSliderVal = psH * 60 + psM;
+
     selectedCities.forEach((city, index) => {
         const isPrimary = isScheduleMode && index === primaryCityIndex;
         const card = document.createElement('div');
@@ -110,6 +114,16 @@ function renderClocks() {
                      onclick="${isPrimary ? "toggleHandSelection('minute', event)" : ''}"></div>
                 <div class="hand second-hand"></div>
             </div>
+            ${isPrimary ? `
+                <div class="vertical-slider-container">
+                    <span class="slider-label">24H</span>
+                    <input type="range" min="0" max="1439" step="5" 
+                           class="vertical-time-slider" 
+                           id="primary-slider"
+                           value="${initialSliderVal}"
+                           oninput="handleSliderTimeChange(this.value)">
+                </div>
+            ` : ''}
             <div class="city-info">
                 <h2>${city.name}</h2>
                 <div class="timezone-label">${city.timezone}</div>
@@ -242,6 +256,13 @@ function updateScheduleDisplay() {
             rangeEl.querySelector('.date-diff').textContent = start.dateDiff || "Same day";
         }
     });
+
+    // Update slider position if it exists
+    const slider = document.getElementById('primary-slider');
+    if (slider) {
+        const [sh, sm] = startTime.split(':').map(Number);
+        slider.value = sh * 60 + sm;
+    }
 }
 
 function getOffsetTime(fromTZ, toTZ, timeStr) {
@@ -516,6 +537,14 @@ function handleClockFaceInteraction(index, e) {
     document.getElementById('plan-start').value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     selectedHand = null; // Clear selection after move
     renderClocks();
+    updateScheduleDisplay();
+}
+
+function handleSliderTimeChange(value) {
+    const h = Math.floor(value / 60);
+    const m = Math.floor(value % 60);
+    const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    document.getElementById('plan-start').value = timeStr;
     updateScheduleDisplay();
 }
 
